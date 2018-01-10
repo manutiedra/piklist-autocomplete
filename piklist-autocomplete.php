@@ -145,7 +145,7 @@ function piklist_autocomplete_pre_render_field($field) {
 
 		$query_url = '/wp/v2/';
 		$query_entity = 'posts';
-		$display_field_name = 'title';
+		$display_field_name = 'title.rendered';
 
 		// resolves ajax url if not set
 		if (!isset($autocomplete['config']['url'])) {
@@ -153,13 +153,13 @@ function piklist_autocomplete_pre_render_field($field) {
 		      	switch ($field['relate']['scope']) {
 					case 'user':
 					case 'user_meta':
-			      		$query_entity = 'comments';
+						$query_entity = 'users';
 			      		$display_field_name = 'name';
 			      		break;
 				    case 'comment':
 	      			case 'comment_meta':
-			      		$query_entity = 'users';
-			      		$display_field_name = 'content';
+			      		$query_entity = 'comments';
+			      		$display_field_name = 'content.rendered';
 			      		break;
 			     }
 			}

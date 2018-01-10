@@ -5,6 +5,12 @@
 ;(function($, window, document, undefined) {
   'use strict';
 
+  function resolve(path, obj) {
+  	return path.split('.').reduce(function(prev, curr) {
+    	return prev ? prev[curr] : null
+    }, obj || self)
+  }
+
   $(document).ready(function() {
     $('.piklist-autocomplete').each(function() {
     	var currElement = $(this);
@@ -31,7 +37,7 @@
 					        var display_field_name = currElement.data('display-field-name');
 
 					        var formatted_data = $.map(data, function (obj) {
-							  obj.text = obj[display_field_name];
+							  obj.text = resolve(display_field_name, obj);
 
 							  return obj;
 							});

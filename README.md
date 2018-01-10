@@ -74,4 +74,4 @@ function piklist_autocomplete_get_custom_field($object, $field_name, $request) {
 ```
 
 ## History:
-* 2018/10/01: v0.0.1 released as a proof of concept
+* 10/01/2018: v0.0.1 released as a proof of concept
