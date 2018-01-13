@@ -30,16 +30,16 @@ class Piklist_Autocomplete_Plugin {
 			self::$_this = $this;
 
 			// piklist plugin check
-			add_action('init', [$this, 'check_for_piklist']);
+			add_action('init', array($this, 'check_for_piklist'));
 
 			// scripts/styles registration
-			add_filter('piklist_field_assets', [$this, 'field_assets']);
+			add_filter('piklist_field_assets', array($this, 'field_assets'));
 
 			// autocomplete behaviour
-			add_filter('piklist_field_alias', [$this, 'field_alias']);
-			add_filter('piklist_field_list_types', [$this, 'field_list_types']);
-			add_filter("piklist_request_field", [$this, 'request_field']);
-			add_filter("piklist_pre_render_field", [$this, 'pre_render_field']);
+			add_filter('piklist_field_alias', array($this, 'field_alias'));
+			add_filter('piklist_field_list_types', array($this, 'field_list_types'));
+			add_filter("piklist_request_field", array($this, 'request_field'));
+			add_filter("piklist_pre_render_field", array($this, 'pre_render_field'));
 		}
 	}
 
@@ -77,7 +77,7 @@ class Piklist_Autocomplete_Plugin {
 	 * @since 0.0.1
 	 */
 	function field_assets($field_assets) {
-		$field_assets['autocomplete'] = array('callback' => [$this, 'render_field_assets']);
+		$field_assets['autocomplete'] = array('callback' => array($this, 'render_field_assets'));
 
 		return $field_assets;
 	}
