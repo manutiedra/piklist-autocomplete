@@ -2,11 +2,17 @@
 /*
 Plugin Name: Piklist Autocomplete
 Description: Adds autocomplete field to piklist, with and without ajax support
-Version: 0.0.1
+Version: 0.0.2
 Author: Manuel Abadía
 Plugin Type: Piklist
+Text Domain: piklist-autocomplete
 License: GPL2
 */
+
+// if accessed directly, exit
+if (!defined('ABSPATH')) {
+	exit;
+}
 
 /* piklist plugin check */
 
@@ -60,6 +66,20 @@ function piklist_autocomplete_render_field_assets($type) {
 }
 
 /* autocomplete behaviour */
+
+add_filter("piklist_field_alias", "piklist_autocomplete_field_alias");
+
+/**
+ * Add an alias from autocomplete to select
+ *
+ * @return void
+ * @since 0.0.2
+ */
+function piklist_autocomplete_field_alias($alias){
+	$alias['autocomplete'] = 'select';
+
+	return $alias;
+}
 
 add_filter("piklist_field_list_types", "piklist_autocomplete_field_list_types");
 
@@ -198,14 +218,14 @@ function piklist_autocomplete_pre_render_field($field) {
 				));
 
 				/**
-				* piklist_autocomplete_rest_request
-				* Filters the REST request
+				* Filters the REST request to fetch the selected values
 				*
 				* @param WP_REST_Request $rest_request The REST request
+				* @param array $field The settings for the field
 				*
 				* @since 0.0.1
 				*/
-				$rest_request = apply_filters('piklist_autocomplete_rest_request', $rest_request);
+				$rest_request = apply_filters('piklist_autocomplete_value_rest_request', $rest_request, $field);
 
 				global $post;
 				$current_post = $post;
@@ -219,14 +239,15 @@ function piklist_autocomplete_pre_render_field($field) {
 				}
 
 				/**
-				* piklist_autocomplete_rest_response
-				* Filters the REST response
+				* Filters the REST response to fetch the selected values
 				*
 				* @param WP_REST_Response $rest_response The REST response
+				* @param array $field The settings for the field
 				*
 				* @since 0.0.1
 				*/
-				$rest_response = apply_filters('piklist_autocomplete_rest_response', $rest_response);
+
+				$rest_response = apply_filters('piklist_autocomplete_rest_response', $rest_response, $field);
 	 
 				$field['choices'] = piklist($rest_response->get_data(), array('id', $autocomplete['config']['display_field_name']));
 
@@ -235,7 +256,19 @@ function piklist_autocomplete_pre_render_field($field) {
 			}
 		}
 
-		$autocomplete['config']['url'] = $autocomplete['config']['url']."?".http_build_query($autocomplete['query']);		
+		$query_parameters = $autocomplete['query'];
+
+		/**
+		* Filters the parameters that will be passed to the REST request
+		*
+		* @param array $query_paramters The parameters read from the field configuration
+		* @param array $field The settings for the field
+		*
+		* @since 0.0.2
+		*/
+		$query_parameters = apply_filters('piklist_autocomplete_rest_query_paramters', $query_parameters, $field);
+
+		$autocomplete['config']['url'] = $autocomplete['config']['url']."?".http_build_query($query_parameters);
 
 		array_push($attributes['class'], 'piklist-autocomplete');
 
