@@ -61,7 +61,7 @@ class Piklist_Autocomplete_Plugin {
 	 */
 	function check_for_piklist(){
 		if(is_admin()){
-			include_once(plugin_dir_path( __FILE__ ).'class-piklist-checker.php');
+			include_once(plugin_dir_path( __FILE__ ) . 'class-piklist-checker.php');
 	
 			if (!piklist_checker::check(__FILE__)){
 				return;
@@ -143,8 +143,8 @@ class Piklist_Autocomplete_Plugin {
 				}
 			}
 
-			// sets the default config settings
-			$field['autocomplete']['config'] = wp_parse_args($field['autocomplete']['config'], array(
+			// sets the default config settings for non initialized entries
+			static $default_config = array(
 				'enable_ajax_loading' => null,		// enable ajax calls to get partial data
 				'minimum_input_length' => 0,		// minimum input length to generate an ajax call
 				'delay_between_calls' => 250,		// minimum delay between ajax calls
@@ -152,10 +152,22 @@ class Piklist_Autocomplete_Plugin {
 				'url' => null,						// ajax url to call to get the associated data (if null we use the default REST API url)
 				'language' => null,					// languaje used for the different messages displayed (if null we use the current one)
 				'display_field_name' => null,		// field to show in the options
-			));
+			);
 
-			// sets the default query settings
-			$field['autocomplete']['query'] = wp_parse_args($field['autocomplete']['query'], array(
+			/**
+			* Filters the default config options
+			*
+			* @param array $default_config The default config parameters
+			* @param array $field The settings for the field
+			*
+			* @since 0.0.1
+			*/
+			$config_options = apply_filters('piklist_autocomplete_default_query_options', $default_config, $field);
+
+			$field['autocomplete']['config'] = wp_parse_args($field['autocomplete']['config'], $config_options);
+
+			// sets the default query settings for non initialized entries
+			static $default_query = array(
 				'order' => null,					// order sort attribute
 				'orderby' => null,					// sort collection by object attribute
 				'include' => null,					// limit result set to specific IDs
@@ -164,9 +176,22 @@ class Piklist_Autocomplete_Plugin {
 				'after' => null,					// limit response to posts/comments published after a given ISO8601 compliant date
 				'slug' => null,						// limit result set to users with one or more specific slugs
 				'status' => null,					// limit result set to posts assigned one or more statuses
-				'post_type' => null,				// post type to query for custom post types
-			));
+				'type' => null,						// type to query
+			);
+
+			/**
+			* Filters the default query options
+			*
+			* @param array $default_query The default query parameters
+			* @param array $field The settings for the field
+			*
+			* @since 0.0.1
+			*/
+			$query_options = apply_filters('piklist_autocomplete_default_query_options', $default_query, $field);
+
+			$field['autocomplete']['query'] = wp_parse_args($field['autocomplete']['query'], $query_options);
 		}
+
 		return $field;
 	}
 
@@ -204,13 +229,13 @@ class Piklist_Autocomplete_Plugin {
 					}
 				}
 
-				if ($query_entity == 'posts' && isset($autocomplete['query']['post_type'])) {
-					$query_entity = $autocomplete['query']['post_type'];
-					unset($autocomplete['query']['post_type']);
+				if (isset($autocomplete['query']['type'])) {
+					$query_entity = $autocomplete['query']['type'];
+					unset($autocomplete['query']['type']);
 				}
 
-				$query_url = $query_url.$query_entity;
-				$autocomplete['config']['url'] = get_home_url(null, '/wp-json').$query_url;
+				$query_url = $query_url . $query_entity;
+				$autocomplete['config']['url'] = get_home_url(null, '/wp-json') . $query_url;
 			} else {
 				$query_url = $autocomplete['config']['url'];
 			}
@@ -227,7 +252,7 @@ class Piklist_Autocomplete_Plugin {
 
 			if ($autocomplete['config']['enable_ajax_loading']) {
 				// for a field with saved values, retrieves only those values
-				if (!isset($field['value'])) {
+				if (!isset($field['value']) || empty($field['value'])) {
 					$field['choices'] = array();
 				} else {
 					// otherwise performs a REST request with the required values
@@ -254,7 +279,7 @@ class Piklist_Autocomplete_Plugin {
 		
 					if ($rest_response->is_error()) {
 						$error = $rest_response->as_error();
-						wp_die(printf('<p>An error occurred: %s (%d) - code %s</p>', 
+						echo(printf('<p>An error occurred: %s (%d) - code %s</p>', 
 							$error->get_error_message(), $error->get_error_data(), $error->get_error_code()));
 					}
 
@@ -288,7 +313,9 @@ class Piklist_Autocomplete_Plugin {
 			*/
 			$query_parameters = apply_filters('piklist_autocomplete_rest_query_paramters', $query_parameters, $field);
 
-			$autocomplete['config']['url'] = $autocomplete['config']['url']."?".http_build_query($query_parameters);
+			if (!empty($query_parameters)) {
+				$autocomplete['config']['url'] = $autocomplete['config']['url'] . '?' . http_build_query($query_parameters);
+			}
 
 			array_push($attributes['class'], 'piklist-autocomplete');
 
@@ -308,7 +335,7 @@ class Piklist_Autocomplete_Plugin {
 
 			// the current implementation uses select2 but that could change in the future,
 			// so we use friendly names for the configuration
-			$data_mappings = array(
+			static $data_mappings = array(
 				'enable_ajax_loading' => 'enable-ajax',
 				'minimum_input_length' => 'minimum-input-length',
 				'delay_between_calls' => 'delay',
@@ -318,9 +345,15 @@ class Piklist_Autocomplete_Plugin {
 				'display_field_name' => 'display-field-name',
 			);
 
-			// save the data values to configure the control
+			// save the data values to configure the field
 			foreach($data_mappings as $key => $val) {
-				$attributes['data-'.$val] = $autocomplete['config'][$key];
+				if (isset($autocomplete['config'][$key])) {
+					if (is_array($autocomplete['config'][$key])) {
+						$attributes['data-' . $val] = json_encode($autocomplete['config'][$key]);
+					} else {
+						$attributes['data-' . $val] = $autocomplete['config'][$key];
+					}
+				}
 			}
 		}
 		return $field;

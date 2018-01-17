@@ -1,11 +1,11 @@
 /* --------------------------------------------------------------------------------
-  Manu's custom javascript code
+  Init piklist-autocomplete fields
 --------------------------------------------------------------------------------- */
 
 ;(function($, window, document, undefined) {
   'use strict';
 
-  function resolve(path, obj) {
+  function resolve(obj, path) {
   	return path.split('.').reduce(function(prev, curr) {
     	return prev ? prev[curr] : null
     }, obj || self)
@@ -13,20 +13,20 @@
 
   $(document).ready(function() {
     $('.piklist-autocomplete').each(function() {
-    	var currElement = $(this);
+    	var curr_element = $(this);
 
-    	if (currElement.data('enable-ajax')) {
-	    	currElement.select2({
+    	if (curr_element.data('enable-ajax')) {
+	    	curr_element.select2({
 				ajax: {
 					url: function () {
-		      			return currElement.data('autocomplete-url');
+		      			return curr_element.data('autocomplete-url');
 		    		},
 					dataType: 'json',
 					data: function (params) {
 						var query = {
 							search: params.term,
 							page: params.page || 1,
-							per_page: currElement.data('items-per-page')
+							per_page: curr_element.data('items-per-page')
 						};
 
 						return query;
@@ -34,10 +34,10 @@
 					transport: function (params, success, failure) {
 						var read_headers = function(data, textStatus, jqXHR) {
 					        var total_pages = parseInt(jqXHR.getResponseHeader('X-WP-TotalPages')) || 1;
-					        var display_field_name = currElement.data('display-field-name');
+					        var display_field_name = curr_element.data('display-field-name');
 
 					        var formatted_data = $.map(data, function (obj) {
-							  obj.text = resolve(display_field_name, obj);
+							  obj.text = resolve(obj, display_field_name);
 
 							  return obj;
 							});
@@ -60,7 +60,7 @@
 				}
 			});
 		} else {
-			currElement.select2();
+			curr_element.select2();
 		}
 	});
 
