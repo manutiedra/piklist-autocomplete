@@ -32,7 +32,7 @@
 						return query;
 					},
 					transport: function (params, success, failure) {
-						var read_headers = function(data, textStatus, jqXHR) {
+						var read_headers = function(data, status, jqXHR) {
 					        var total_pages = parseInt(jqXHR.getResponseHeader('X-WP-TotalPages')) || 1;
 					        var display_field_name = curr_element.data('display-field-name');
 

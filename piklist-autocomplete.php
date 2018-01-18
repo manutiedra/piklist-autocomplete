@@ -116,6 +116,9 @@ class Piklist_Autocomplete_Plugin {
 	 * @since 0.0.1
 	 */
 	function field_list_types($field_list_types) {
+		if (!isset($field_list_types['multiple_value'])) {
+			$field_list_types['multiple_value'] = array();
+		}
 		array_push($field_list_types['multiple_value'], 'autocomplete');
 
 		return $field_list_types;
@@ -258,8 +261,8 @@ class Piklist_Autocomplete_Plugin {
 					// otherwise performs a REST request with the required values
 					$rest_request = new WP_REST_Request('GET', $query_url);
 					$rest_request->set_query_params(array(
-					'include' => $field['value'],
-					'per_page' => 100
+						'include' => $field['value'],
+						'per_page' => 100
 					));
 
 					/**
@@ -313,7 +316,7 @@ class Piklist_Autocomplete_Plugin {
 			*/
 			$query_parameters = apply_filters('piklist_autocomplete_rest_query_paramters', $query_parameters, $field);
 
-			if (!empty($query_parameters)) {
+			if (!empty(implode(null, $query_parameters))) {
 				$autocomplete['config']['url'] = $autocomplete['config']['url'] . '?' . http_build_query($query_parameters);
 			}
 
