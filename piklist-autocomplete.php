@@ -95,6 +95,13 @@ class Piklist_Autocomplete_Plugin {
 
 		wp_enqueue_script('piklist-autocomplete-select2', plugins_url('lib/js/select2/select2.min.js', __FILE__), array('jquery'), false, true);
 		wp_enqueue_script('piklist-autocomplete-setup', plugins_url('parts/js/select2-setup.js', __FILE__), array('piklist-autocomplete-select2'), false, true);
+
+		/**
+		* Notifies that is time to add additional assets related to the autocomplete field
+		*
+		* @since 0.0.2
+		*/
+		do_action('piklist_autocomplete_field_assets');
 	}
 
 	/**
