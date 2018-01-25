@@ -141,16 +141,9 @@ class Piklist_Autocomplete_Plugin {
 	 */
 	function request_field($field) {
 		if ($field['type'] == 'autocomplete') {
-			if (!isset($field['autocomplete'])) {
-				$field['autocomplete'] = array(
-					'config' => array(),
-					'query' => array()
-				);
-			} else {
-				foreach(array('config', 'query') as $section) {
-					if (!isset($field['autocomplete'][$section])) {
-						$field['autocomplete'][$section] = array();
-					}
+			foreach(array('config', 'query') as $section) {
+				if (!isset($field['options'][$section])) {
+					$field['options'][$section] = array();
 				}
 			}
 
@@ -175,7 +168,7 @@ class Piklist_Autocomplete_Plugin {
 			*/
 			$config_options = apply_filters('piklist_autocomplete_default_query_options', $default_config, $field);
 
-			$field['autocomplete']['config'] = wp_parse_args($field['autocomplete']['config'], $config_options);
+			$field['options']['config'] = wp_parse_args($field['options']['config'], $config_options);
 
 			// sets the default query settings for non initialized entries
 			static $default_query = array(
@@ -200,7 +193,7 @@ class Piklist_Autocomplete_Plugin {
 			*/
 			$query_options = apply_filters('piklist_autocomplete_default_query_options', $default_query, $field);
 
-			$field['autocomplete']['query'] = wp_parse_args($field['autocomplete']['query'], $query_options);
+			$field['options']['query'] = wp_parse_args($field['options']['query'], $query_options);
 		}
 
 		return $field;
@@ -217,14 +210,14 @@ class Piklist_Autocomplete_Plugin {
 		if ($field['type'] == 'autocomplete') {
 
 			$attributes =& $field['attributes'];
-			$autocomplete =& $field['autocomplete'];
+			$options =& $field['options'];
 
 			$query_url = '/wp/v2/';
 			$query_entity = 'posts';
 			$display_field_name = 'title.rendered';
 
 			// resolves ajax url if not set
-			if (!isset($autocomplete['config']['url'])) {
+			if (!isset($options['config']['url'])) {
 				if (isset($field['relate']['scope'])) {
 					switch ($field['relate']['scope']) {
 						case 'user':
@@ -240,28 +233,28 @@ class Piklist_Autocomplete_Plugin {
 					}
 				}
 
-				if (isset($autocomplete['query']['type'])) {
-					$query_entity = $autocomplete['query']['type'];
-					unset($autocomplete['query']['type']);
+				if (isset($options['query']['type'])) {
+					$query_entity = $options['query']['type'];
+					unset($options['query']['type']);
 				}
 
 				$query_url = $query_url . $query_entity;
-				$autocomplete['config']['url'] = get_home_url(null, '/wp-json') . $query_url;
+				$options['config']['url'] = get_home_url(null, '/wp-json') . $query_url;
 			} else {
-				$query_url = $autocomplete['config']['url'];
+				$query_url = $options['config']['url'];
 			}
 
 			// sets the display field name if not set by the user
-			if (!isset($autocomplete['config']['display_field_name'])) {
-				$autocomplete['config']['display_field_name'] = $display_field_name;
+			if (!isset($options['config']['display_field_name'])) {
+				$options['config']['display_field_name'] = $display_field_name;
 			}
 
 			// if not set by the user, enables ajax loading if there are choices set
-			if (!isset($autocomplete['config']['enable_ajax_loading'])) {
-				$autocomplete['config']['enable_ajax_loading'] = !(isset($field['choices']) && is_array($field['choices']));
+			if (!isset($options['config']['enable_ajax_loading'])) {
+				$options['config']['enable_ajax_loading'] = !(isset($field['choices']) && is_array($field['choices']));
 			}
 
-			if ($autocomplete['config']['enable_ajax_loading']) {
+			if ($options['config']['enable_ajax_loading']) {
 				// for a field with saved values, retrieves only those values
 				if (!isset($field['value']) || empty($field['value'])) {
 					$field['choices'] = array();
@@ -305,14 +298,14 @@ class Piklist_Autocomplete_Plugin {
 
 					$rest_response = apply_filters('piklist_autocomplete_rest_response', $rest_response, $field);
 		
-					$field['choices'] = piklist($rest_response->get_data(), array('id', $autocomplete['config']['display_field_name']));
+					$field['choices'] = piklist($rest_response->get_data(), array('id', $options['config']['display_field_name']));
 
 					$GLOBALS['post'] = $current_post;
 					setup_postdata($current_post);
 				}
 			}
 
-			$query_parameters = $autocomplete['query'];
+			$query_parameters = $options['query'];
 
 			/**
 			* Filters the parameters that will be passed to the REST request
@@ -325,7 +318,7 @@ class Piklist_Autocomplete_Plugin {
 			$query_parameters = apply_filters('piklist_autocomplete_rest_query_paramters', $query_parameters, $field);
 
 			if (!empty(implode(null, $query_parameters))) {
-				$autocomplete['config']['url'] = $autocomplete['config']['url'] . '?' . http_build_query($query_parameters);
+				$options['config']['url'] = $options['config']['url'] . '?' . http_build_query($query_parameters);
 			}
 
 			array_push($attributes['class'], 'piklist-autocomplete');
@@ -340,8 +333,8 @@ class Piklist_Autocomplete_Plugin {
 			// 	- if lang attribute is set in HTML, it takes precedence over the language parameter
 			// 	- you should enqueue the associated language script in order to see the messages translated. For example:
 			//		wp_enqueue_script('select2-es', plugins_url('lib/js/select2/i18n/es.js', __FILE__), array('piklist-autocomplete-select2'), false, true);
-			if (!isset($autocomplete['config']['language'])) {
-				$autocomplete['config']['language'] = strstr(get_locale(), '_', true);
+			if (!isset($options['config']['language'])) {
+				$options['config']['language'] = strstr(get_locale(), '_', true);
 			}
 
 			// the current implementation uses select2 but that could change in the future,
@@ -358,11 +351,11 @@ class Piklist_Autocomplete_Plugin {
 
 			// save the data values to configure the field
 			foreach($data_mappings as $key => $val) {
-				if (isset($autocomplete['config'][$key])) {
-					if (is_array($autocomplete['config'][$key])) {
-						$attributes['data-' . $val] = json_encode($autocomplete['config'][$key]);
+				if (isset($options['config'][$key])) {
+					if (is_array($options['config'][$key])) {
+						$attributes['data-' . $val] = json_encode($options['config'][$key]);
 					} else {
-						$attributes['data-' . $val] = $autocomplete['config'][$key];
+						$attributes['data-' . $val] = $options['config'][$key];
 					}
 				}
 			}
