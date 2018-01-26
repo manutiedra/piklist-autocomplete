@@ -25,13 +25,13 @@ piklist('field', array(
 
 However, the true power of the plugin is shown when you remove the `choices` parameter and you let the autocomplete field automatically populate the choices array. In order for this to work, you need to enable the REST API (it's enabled by default in Wordpress).
 
-For a custom post type, you'll need to register the type with `'show_in_rest' => true` and specify your custom post type in the `'query'` array, under the `'autocomplete'` parameters:
+For a custom post type, you'll need to register the type with `'show_in_rest' => true` and specify your custom post type in the `'query'` array, under the `'options'` parameters:
 
 ```php
 piklist('field', array(
   'type' => 'autocomplete',
   ...
-  'autocomplete' => array(
+  'options' => array(
     'query' => array(
       'post_type' => 'my_custom_post_type'
     ),
@@ -42,7 +42,7 @@ If you prefer another value to be displayed instead of the post_title for posts,
 piklist('field', array(
   'type' => 'autocomplete',
   ...
-  'autocomplete' => array(
+  'options' => array(
     'config' => array(
       'display_field_name' => 'field_name',
     ),
@@ -74,5 +74,7 @@ function piklist_autocomplete_get_custom_field($object, $field_name, $request) {
 ```
 
 ## History:
-* 10/01/2018: v0.0.1 released as a proof of concept
+* 26/01/2018: v0.0.3 released. Changed configuration options from field['autocomplete'] to field['options'].
 * 19/01/2018: v0.0.2 released. Some code cleanup and minor fixes. Updated to work with the latest changes in the piklist develop branch
+* 10/01/2018: v0.0.1 released as a proof of concept
+

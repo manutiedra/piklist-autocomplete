@@ -2,7 +2,7 @@
 /*
 Plugin Name: Piklist Autocomplete
 Description: Adds autocomplete field to piklist, with and without ajax support
-Version: 0.0.2
+Version: 0.0.3
 Author: Manuel Abadía
 Plugin Type: Piklist
 Text Domain: piklist-autocomplete
