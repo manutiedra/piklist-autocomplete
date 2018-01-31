@@ -170,18 +170,9 @@ class Piklist_Autocomplete_Plugin {
 
 			$field['options']['config'] = wp_parse_args($field['options']['config'], $config_options);
 
-			// sets the default query settings for non initialized entries
-			static $default_query = array(
-				'order' => null,					// order sort attribute
-				'orderby' => null,					// sort collection by object attribute
-				'include' => null,					// limit result set to specific IDs
-				'exclude' => null,					// ensure result set excludes specific IDs
-				'before' => null,					// limit response to posts/comments published before a given ISO8601 compliant date
-				'after' => null,					// limit response to posts/comments published after a given ISO8601 compliant date
-				'slug' => null,						// limit result set to users with one or more specific slugs
-				'status' => null,					// limit result set to posts assigned one or more statuses
-				'type' => null,						// type to query
-			);
+			// sets the default query options for non initialized entries. The  most common ones supported by the REST API are:
+        	// order, orderby, include, exclude, before, after, slug, status, type. However, each type has its own particularities
+        	static $default_query = array();
 
 			/**
 			* Filters the default query options
@@ -192,6 +183,11 @@ class Piklist_Autocomplete_Plugin {
 			* @since 0.0.1
 			*/
 			$query_options = apply_filters('piklist_autocomplete_default_query_options', $default_query, $field);
+
+			// sets the authetification nonce to be able to access the user id in the rest requests
+			if (!isset($query_options['_wpnonce'])) {
+				$query_options['_wpnonce'] = wp_create_nonce('wp_rest');
+			}
 
 			$field['options']['query'] = wp_parse_args($field['options']['query'], $query_options);
 		}
