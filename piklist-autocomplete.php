@@ -124,10 +124,10 @@ class Piklist_Autocomplete_Plugin {
      * @since 0.0.1
      */
     function field_list_types($field_list_types) {
-        if (!isset($field_list_types['multiple_value'])) {
-            $field_list_types['multiple_value'] = array();
-        }
-        array_push($field_list_types['multiple_value'], 'autocomplete');
+        $field_list_types = array(
+            'multiple_value' => array(
+              'autocomplete'
+        ));
 
         return $field_list_types;
     }
